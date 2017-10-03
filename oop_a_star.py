@@ -25,7 +25,6 @@ class Node:
 
     def generateNeighbors (self):
         neighbors = []
-        print(map_img[self.location[0]][self.location[1] + 1])
         if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] is not 0:
             neighbors.append(Node(self.home, self.goal, (self.location[0] + 1, self.location[1])))
         if self.location[0] - 1 >= 0 and map_img[self.location[0] - 1][self.location[1]] is not 0:
@@ -46,8 +45,8 @@ def isNotIn (neighbor, listy):
     return True
 
 def printMap ((index1, index2)):
-    map_img[index1, index2] = 999
-    print(map_img)
+    map_img_cp[index1, index2] = 999
+    print(map_img_cp)
 
 def a_star ():
     # create the fringe and alreadyVisited lists
@@ -83,6 +82,7 @@ if __name__ == "__main__":
 
     map_img = cv2.imread("test.png")
     map_img = cv2.cvtColor(map_img,cv2.COLOR_RGB2GRAY)
+    map_img_cp = map_img.copy()
     if make_tuple(sys.argv[2])[0] < len(map_img) and make_tuple(sys.argv[2])[0] < len(map_img[0]):
         home = make_tuple(sys.argv[1])
         goal = make_tuple(sys.argv[2])
