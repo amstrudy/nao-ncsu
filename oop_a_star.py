@@ -25,13 +25,13 @@ class Node:
 
     def generateNeighbors (self):
         neighbors = []
-        if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] is not 0:
+        if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] != 0:
             neighbors.append(Node(self.home, self.goal, (self.location[0] + 1, self.location[1])))
-        if self.location[0] - 1 >= 0 and map_img[self.location[0] - 1][self.location[1]] is not 0:
+        if self.location[0] - 1 >= 0 and map_img[self.location[0] - 1][self.location[1]] != 0:
             neighbors.append(Node(self.home, self.goal, (self.location[0] - 1, self.location[1])))
-        if self.location[1] + 1 < len(map_img) and map_img[self.location[0]][self.location[1] + 1] is not 0:
+        if self.location[1] + 1 < len(map_img) and map_img[self.location[0]][self.location[1] + 1] != 0:
             neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] + 1)))
-        if self.location[1] - 1 >= 0 and map_img[self.location[0]][self.location[1] - 1] is not 0:
+        if self.location[1] - 1 >= 0 and map_img[self.location[0]][self.location[1] - 1] != 0:
             neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] - 1)))
         self.neighbors = neighbors
 
