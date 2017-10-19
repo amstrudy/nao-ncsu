@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import sys
+from Queue import PriorityQueue
 
 from ast import literal_eval as make_tuple
 
@@ -25,13 +26,13 @@ class Node:
 
     def generateNeighbors (self):
         neighbors = []
-        if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] != 0:
+        if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] != 1:
             neighbors.append(Node(self.home, self.goal, (self.location[0] + 1, self.location[1])))
-        if self.location[0] - 1 >= 0 and map_img[self.location[0] - 1][self.location[1]] != 0:
+        if self.location[0] - 1 >= 0 and map_img[self.location[0] - 1][self.location[1]] != 1:
             neighbors.append(Node(self.home, self.goal, (self.location[0] - 1, self.location[1])))
-        if self.location[1] + 1 < len(map_img) and map_img[self.location[0]][self.location[1] + 1] != 0:
+        if self.location[1] + 1 < len(map_img) and map_img[self.location[0]][self.location[1] + 1] != 1:
             neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] + 1)))
-        if self.location[1] - 1 >= 0 and map_img[self.location[0]][self.location[1] - 1] != 0:
+        if self.location[1] - 1 >= 0 and map_img[self.location[0]][self.location[1] - 1] != 1:
             neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] - 1)))
         self.neighbors = neighbors
 
@@ -45,12 +46,12 @@ def isNotIn (neighbor, listy):
     return True
 
 def printMap ((index1, index2)):
-    map_img_cp[index1, index2] = 999
+    map_img_cp[index1, index2] = 9
     print(map_img_cp)
 
 def a_star ():
     # create the fringe and alreadyVisited lists
-    fringe = []
+    fringe = PriorityQueue()
     alreadyVisited = []
     listOfActions = []
 
@@ -58,30 +59,39 @@ def a_star ():
     home_node = Node(home, goal, home)
 
     # add home as first element of fringe
-    fringe.append(home_node)
+    fringe.put(home_node)
     listOfActions.append(home_node)
-    while len(fringe) != 0:
+    while not fringe.empty():
         cur_node = listOfActions[-1] # expand on last best node
         if cur_node.location == goal:
             print("Made it to the goal!")
             return listOfActions
         cur_node.generateNeighbors() # make new nodes to check
         for neighbor in cur_node.neighbors:
+            print(neighbor.location)
             if isNotIn(neighbor, alreadyVisited): # make sure you haven't already checked that node
-                fringe.append(neighbor)
+                fringe.put(neighbor)
                 cur_node.neighbors.pop(0)
             if neighbor.fScore > cur_node.fScore: # if score is higher, this path is not better thusc continue without saving this node
                 alreadyVisited.append(neighbor)
                 break
             listOfActions.append(neighbor) # if score is better, save this as part of your path
-        fringe.pop()
+        fringe.get()
         print(cur_node)
         printMap(cur_node.location)
 
 if __name__ == "__main__":
 
-    map_img = cv2.imread("test.png")
-    map_img = cv2.cvtColor(map_img,cv2.COLOR_RGB2GRAY)
+    # map_img = cv2.imread("test.png")
+    # map_img = cv2.cvtColor(map_img,cv2.COLOR_RGB2GRAY)
+    # for i in range(map_img.shape[0]):
+    #     for j in range(map_img.shape[1]):
+    #         if map_img[i][j] == 0:
+    #             map_img[i][j] = 1
+    #         else:
+    #             map_img[i][j] = 0
+    map_img = [[0, 0, 1, 1, 0],[0, 0, 1, 1, 0], [0, 0, 1, 1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+    map_img = np.asarray(map_img)
     map_img_cp = map_img.copy()
     if make_tuple(sys.argv[2])[0] < len(map_img) and make_tuple(sys.argv[2])[0] < len(map_img[0]):
         home = make_tuple(sys.argv[1])
