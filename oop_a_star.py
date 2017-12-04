@@ -7,33 +7,29 @@ from ast import literal_eval as make_tuple
 
 class Node:
 
-    def __init__ (self, home=(0,0), goal=(1,1), location=(0,0)):
+    def __init__ (self, home=(0,0), goal=(1,1), location=(0,0), gScore = 0):
         self.location = location
         self.home = home
         self.goal = goal
         self.neighbors = []
-        self.gScore = self.gScore()
+        self.gScore = gScore
         self.hScore = self.hScore()
         self.fScore = self.gScore + self.hScore
 
-    def gScore (self):
-        manhattan_dist = (self.goal[1] - self.home[1]) + (self.goal[0] - self.home[0])
-        return manhattan_dist
-
     def hScore (self):
-        manhattan_dist = (self.goal[1] - self.location[1]) + (self.goal[0] - self.location[0])
+        manhattan_dist = abs((self.goal[0] - self.location[0])) + abs(self.goal[1] - self.location[1])
         return manhattan_dist
 
     def generateNeighbors (self):
         neighbors = []
         if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] != 1:
-            neighbors.append(Node(self.home, self.goal, (self.location[0] + 1, self.location[1])))
+            neighbors.append(Node(self.home, self.goal, (self.location[0] + 1, self.location[1]), self.gScore + 1))
         if self.location[0] - 1 >= 0 and map_img[self.location[0] - 1][self.location[1]] != 1:
-            neighbors.append(Node(self.home, self.goal, (self.location[0] - 1, self.location[1])))
+            neighbors.append(Node(self.home, self.goal, (self.location[0] - 1, self.location[1]), self.gScore + 1))
         if self.location[1] + 1 < len(map_img) and map_img[self.location[0]][self.location[1] + 1] != 1:
-            neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] + 1)))
+            neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] + 1), self.gScore + 1))
         if self.location[1] - 1 >= 0 and map_img[self.location[0]][self.location[1] - 1] != 1:
-            neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] - 1)))
+            neighbors.append(Node(self.home, self.goal, (self.location[0], self.location[1] - 1), self.gScore + 1))
         self.neighbors = neighbors
 
     def __str__ (self):
@@ -48,38 +44,55 @@ def isNotIn (neighbor, listy):
 def printMap ((index1, index2)):
     map_img_cp[index1, index2] = 9
     print(map_img_cp)
+def reconstruct(cameFrom, current):
+    total_path = [current]
+    while current in cameFrom:
+        current = cameFrom[current]
+        total_path.append(current)
+    return total_path
 
-def a_star ():
-    # create the fringe and alreadyVisited lists
-    fringe = PriorityQueue()
-    alreadyVisited = []
-    listOfActions = []
+def a_star(home, goal):
 
     # create node object for home
     home_node = Node(home, goal, home)
 
-    # add home as first element of fringe
-    fringe.put(home_node)
-    listOfActions.append(home_node)
-    while not fringe.empty():
-        cur_node = listOfActions[-1] # expand on last best node
-        if cur_node.location == goal:
-            print("Made it to the goal!")
-            return listOfActions
-        cur_node.generateNeighbors() # make new nodes to check
-        for neighbor in cur_node.neighbors:
-            print(neighbor.location)
-            if isNotIn(neighbor, alreadyVisited): # make sure you haven't already checked that node
-                fringe.put(neighbor)
-                cur_node.neighbors.pop(0)
-            if neighbor.fScore > cur_node.fScore: # if score is higher, this path is not better thusc continue without saving this node
-                alreadyVisited.append(neighbor)
-                break
-            listOfActions.append(neighbor) # if score is better, save this as part of your path
-        fringe.get()
-        print(cur_node)
-        printMap(cur_node.location)
+    # set of nodes already evaluated
+    closedSet = set()
 
+    # set of currently discovered nodes that are not evaluated yet
+    # initially, only the start node is known
+    openSet = set([home_node])
+    cameFrom = {}
+    while len(openSet) != 0:
+        tempfScore = next(iter(openSet)).fScore
+        current = next(iter(openSet))
+        for i in iter(openSet):
+            if i.fScore < tempfScore:
+                tempfScore = i.fScore
+                current = i
+                
+        
+        if current.location == home_node.goal:
+            print("Made it to goal")
+            return reconstruct(cameFrom, current.location)
+        openSet.remove(current)
+        closedSet.add(current)
+        
+        current.generateNeighbors()
+        for neighbor in current.neighbors:
+            
+            if neighbor in closedSet:
+                continue
+
+            if neighbor not in openSet:
+                openSet.add(neighbor)
+
+            if current.gScore+ abs(current.fScore - neighbor.fScore) >= neighbor.gScore:
+                continue # this is not eh better path
+            # this path is the best for now, so record it
+            cameFrom[neighbor.location] = current.location
+        print(current)
+        printMap(current.location)
 if __name__ == "__main__":
 
     # map_img = cv2.imread("test.png")
@@ -104,4 +117,4 @@ if __name__ == "__main__":
 
     print(home, goal)
 
-    a_star()
+    print(a_star(home,goal))
