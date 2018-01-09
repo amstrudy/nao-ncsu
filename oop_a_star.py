@@ -20,7 +20,7 @@ class Node:
         manhattan_dist = abs((self.goal[0] - self.location[0])) + abs(self.goal[1] - self.location[1])
         return manhattan_dist
 
-    def generateNeighbors (self):
+    def generateNeighbors (self, map_img):
         neighbors = []
         if self.location[0] + 1 < len(map_img[0]) and map_img[self.location[0] + 1][self.location[1]] != 1:
             neighbors.append(Node(self.home, self.goal, (self.location[0] + 1, self.location[1]), self.gScore + 1))
@@ -44,6 +44,7 @@ def isNotIn (neighbor, listy):
 def printMap ((index1, index2)):
     map_img_cp[index1, index2] = 9
     print(map_img_cp)
+
 def reconstruct(cameFrom, current):
     total_path = [current]
     while current in cameFrom:
@@ -51,7 +52,7 @@ def reconstruct(cameFrom, current):
         total_path.append(current)
     return total_path
 
-def a_star(home, goal):
+def a_star(home, goal, map_img):
 
     # create node object for home
     home_node = Node(home, goal, home)
@@ -63,6 +64,8 @@ def a_star(home, goal):
     # initially, only the start node is known
     openSet = set([home_node])
     cameFrom = {}
+    count = 0;
+
     while len(openSet) != 0:
         tempfScore = next(iter(openSet)).fScore
         current = next(iter(openSet))
@@ -70,17 +73,19 @@ def a_star(home, goal):
             if i.fScore < tempfScore:
                 tempfScore = i.fScore
                 current = i
-                
-        
+
         if current.location == home_node.goal:
             print("Made it to goal")
             return reconstruct(cameFrom, current.location)
         openSet.remove(current)
         closedSet.add(current)
-        
-        current.generateNeighbors()
+
+        current.generateNeighbors(map_img)
         for neighbor in current.neighbors:
-            
+
+            if count > 50 * (len(map_img) * len(map_img[0])):
+                return 0
+
             if neighbor in closedSet:
                 continue
 
@@ -91,8 +96,9 @@ def a_star(home, goal):
                 continue # this is not eh better path
             # this path is the best for now, so record it
             cameFrom[neighbor.location] = current.location
-        print(current)
-        printMap(current.location)
+        #print(current)
+        count += 1 # Total number of nodes checked
+        #printMap(current.location)
 if __name__ == "__main__":
 
     # map_img = cv2.imread("test.png")
@@ -103,7 +109,7 @@ if __name__ == "__main__":
     #             map_img[i][j] = 1
     #         else:
     #             map_img[i][j] = 0
-    map_img = [[0, 0, 1, 1, 0],[0, 0, 1, 1, 0], [0, 0, 1, 1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+    map_img = [[0, 1, 1, 1, 0],[0, 1, 1, 1, 0], [0, 1, 1, 1, 0], [0, 1, 0, 0, 0], [0, 1, 0, 0, 0]]
     map_img = np.asarray(map_img)
     map_img_cp = map_img.copy()
     if make_tuple(sys.argv[2])[0] < len(map_img) and make_tuple(sys.argv[2])[0] < len(map_img[0]):
@@ -117,4 +123,4 @@ if __name__ == "__main__":
 
     print(home, goal)
 
-    print(a_star(home,goal))
+    print(a_star(home, goal, map_img))
